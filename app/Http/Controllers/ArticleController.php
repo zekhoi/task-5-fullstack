@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreArticleRequest;
-use App\Http\Requests\UpdateArticleRequest;
+
 use App\Models\Article;
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ArticleController extends Controller
 {
@@ -15,7 +17,10 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        //
+      return view('articles.index', [
+            "title" => "Articles",
+            "articles" => Article::all()->where('user_id', Auth::user()->id),
+        ]);
     }
 
     /**
@@ -25,7 +30,10 @@ class ArticleController extends Controller
      */
     public function create()
     {
-        //
+      return view('articles.create', [
+            "title" => "Create article",
+            "categories" => Category::all(),
+        ]);
     }
 
     /**
@@ -34,9 +42,19 @@ class ArticleController extends Controller
      * @param  \App\Http\Requests\StoreArticleRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreArticleRequest $request)
+    public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required',
+            'content' => 'required',
+            'image' => 'required',
+            'category_id' => 'required',
+        ]);
+
+        $validated['user_id'] = Auth::user()->id;
+
+        Article::create($validated);
+        return redirect('/articles')->with('alert', 'created!');
     }
 
     /**
@@ -45,9 +63,10 @@ class ArticleController extends Controller
      * @param  \App\Models\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function show(Article $article)
+    public function show($id)
     {
-        //
+        $article = Article::findOrFail($id);
+        return view('articles.show', ['article' => $article]);
     }
 
     /**
@@ -56,9 +75,13 @@ class ArticleController extends Controller
      * @param  \App\Models\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function edit(Article $article)
+    public function edit($id)
     {
-        //
+      return view('articles.edit', [
+            "title" => "Edit articles",
+            "article" => Article::find($id),
+            "categories" => Category::all(),
+        ]);
     }
 
     /**
@@ -68,9 +91,18 @@ class ArticleController extends Controller
      * @param  \App\Models\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateArticleRequest $request, Article $article)
+    public function update(Request $request, $id)
     {
-        //
+      $validated = $request->validate([
+            'title' => 'required',
+            'content' => 'required',
+            'image' => 'required',
+            'category_id' => 'required',
+            'user_id' => 'required',
+        ]);
+
+        Article::where('id', $id)->update($validated);
+        return redirect('/articles')->with('alert', 'updated!');
     }
 
     /**
@@ -79,8 +111,9 @@ class ArticleController extends Controller
      * @param  \App\Models\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Article $article)
+    public function destroy($id)
     {
-        //
+        Article::destroy($id);
+        return redirect('/articles')->with('alert', 'destroyed!');
     }
 }

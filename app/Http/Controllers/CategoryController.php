@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
@@ -15,7 +15,10 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        return view('categories.index', [
+            "title" => "Categories",
+            "categories" => Category::all(),
+        ]);
     }
 
     /**
@@ -25,7 +28,9 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        return view('categories.create', [
+            "title" => "Create category",
+        ]);
     }
 
     /**
@@ -34,9 +39,16 @@ class CategoryController extends Controller
      * @param  \App\Http\Requests\StoreCategoryRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreCategoryRequest $request)
+    public function store(Request $request)
     {
-        //
+      $validated = $request->validate([
+          'name' => 'required',
+      ]);
+
+      $validated['user_id'] = Auth::user()->id;
+
+      Category::create($validated);
+      return redirect('/categories')->with('alert', 'created!');
     }
 
     /**
@@ -56,9 +68,12 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function edit(Category $category)
+    public function edit($id)
     {
-        //
+       return view('categories.edit', [
+            "title" => "Edit Category",
+            "category" => Category::find($id),
+        ]);
     }
 
     /**
@@ -68,9 +83,14 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(Request $request, $id)
     {
-        //
+      $validated = $request->validate([
+            'name' => 'required',
+        ]);
+
+        Category::where('id', $id)->update($validated);
+        return redirect('/categories')->with('alert', 'updated!');
     }
 
     /**
@@ -79,8 +99,9 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Category $category)
+    public function destroy($id)
     {
-        //
+      Category::destroy($id);
+      return redirect('/categories')->with('alert', 'destroyed!');;
     }
 }
