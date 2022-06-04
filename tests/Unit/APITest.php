@@ -37,7 +37,7 @@ class APITest extends TestCase
     
     public function test_articles_show()
     {
-        $this->actingAs($this->user)->get('/api/v1/articles/1')->assertStatus(200);
+        $this->actingAs($this->user)->get('/api/v1/articles/2')->assertStatus(200);
     }
 
     public function test_articles_store()
